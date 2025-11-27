@@ -12,9 +12,11 @@ export default function ProfileSetup() {
         avatar_url: '',
         preferences: {
             smoker: false,
-            pets: false,
+            pets: 'no',
             budget_min: 0,
             budget_max: 1000,
+            move_in_date: '',
+            occupation: 'student',
         }
     })
     const [listing, setListing] = useState({
@@ -22,14 +24,22 @@ export default function ProfileSetup() {
         description: '',
         price: 0,
         location: '',
+        available_from: '',
+        min_stay_months: 1,
         features: {
-            wifi: true,
+            wifi: false,
             ac: false,
-            furnished: false
+            furnished: false,
+            heating: false,
+            elevator: false,
+            dishwasher: false,
+            private_bath: false,
+            size_m2: 0,
         },
         rules: {
-            no_smoking: true,
-            no_pets: true
+            smoking_allowed: false,
+            pets_allowed: 'no',
+            visitors_allowed: 'yes',
         }
     })
 
@@ -49,14 +59,37 @@ export default function ProfileSetup() {
                 .single()
 
             if (data) {
-                setProfile(data)
+                // Ensure preferences and listing features/rules are objects
+                const userProfile = {
+                    ...data,
+                    preferences: data.preferences || {
+                        smoker: false,
+                        pets: 'no',
+                        budget_min: 0,
+                        budget_max: 1000,
+                        move_in_date: '',
+                        occupation: 'student',
+                    }
+                }
+                setProfile(userProfile)
                 if (data.role === 'host') {
                     const { data: listingData } = await supabase
                         .from('listings')
                         .select('*')
                         .eq('host_id', user.id)
                         .single()
-                    if (listingData) setListing(listingData)
+                    if (listingData) {
+                        setListing({
+                            ...listingData,
+                            features: listingData.features || {
+                                wifi: false, ac: false, furnished: false, heating: false,
+                                elevator: false, dishwasher: false, private_bath: false, size_m2: 0
+                            },
+                            rules: listingData.rules || {
+                                smoking_allowed: false, pets_allowed: 'no', visitors_allowed: 'yes'
+                            }
+                        })
+                    }
                 }
             }
         } catch (error) {
@@ -121,7 +154,7 @@ export default function ProfileSetup() {
             </div>
 
             <div className="p-4 -mt-6 relative z-10">
-                <div className="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+                <div className="bg-white rounded-2xl shadow-sm p-6 space-y-8">
 
                     {/* Name & Bio */}
                     <div className="space-y-4">
@@ -168,75 +201,318 @@ export default function ProfileSetup() {
                         </div>
                     </div>
 
-                    {/* Preferences */}
-                    <div>
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">My Lifestyle</label>
-                        <div className="space-y-1">
-                            <div className="flex items-center justify-between py-3 border-b border-gray-50">
-                                <span className="text-gray-700 font-medium">Smoker</span>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked={profile.preferences?.smoker || false} onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, smoker: e.target.checked } })} className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FD267A]"></div>
-                                </label>
-                            </div>
-                            <div className="flex items-center justify-between py-3 border-b border-gray-50">
-                                <span className="text-gray-700 font-medium">Have Pets</span>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked={profile.preferences?.pets || false} onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, pets: e.target.checked } })} className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FD267A]"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Host Specific */}
+                    {/* HOST FORM */}
                     {profile.role === 'host' && (
-                        <div className="pt-4 border-t border-gray-100 space-y-4">
-                            <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm">Room Details</h3>
-                            <div>
-                                <input
-                                    type="text"
-                                    value={listing.title || ''}
-                                    onChange={(e) => setListing({ ...listing, title: e.target.value })}
-                                    className="w-full font-bold text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
-                                    placeholder="Listing Title"
-                                />
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <input
-                                        type="number"
-                                        value={listing.price || ''}
-                                        onChange={(e) => setListing({ ...listing, price: e.target.value })}
-                                        className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
-                                        placeholder="Price $$"
-                                    />
-                                </div>
-                                <div className="flex-1">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="border-t border-gray-100 pt-6">
+                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">The Room</h3>
+
+                                <div className="space-y-4">
                                     <input
                                         type="text"
-                                        value={listing.location || ''}
-                                        onChange={(e) => setListing({ ...listing, location: e.target.value })}
-                                        className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
-                                        placeholder="City"
+                                        value={listing.title || ''}
+                                        onChange={(e) => setListing({ ...listing, title: e.target.value })}
+                                        className="w-full font-bold text-lg text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                        placeholder="Listing Title (e.g. Sunny Room in Mission)"
                                     />
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Price / Month</label>
+                                            <input
+                                                type="number"
+                                                value={listing.price || ''}
+                                                onChange={(e) => setListing({ ...listing, price: parseInt(e.target.value) })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                placeholder="$$$"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Room Size (m²)</label>
+                                            <input
+                                                type="number"
+                                                value={listing.features?.size_m2 || ''}
+                                                onChange={(e) => setListing({ ...listing, features: { ...listing.features, size_m2: parseInt(e.target.value) } })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                placeholder="e.g. 12"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Available From</label>
+                                            <input
+                                                type="date"
+                                                value={listing.available_from || ''}
+                                                onChange={(e) => setListing({ ...listing, available_from: e.target.value })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Min Stay (Months)</label>
+                                            <input
+                                                type="number"
+                                                value={listing.min_stay_months || 1}
+                                                onChange={(e) => setListing({ ...listing, min_stay_months: parseInt(e.target.value) })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-100 pt-6">
+                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">Features & Rules</h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-gray-400 font-bold block mb-2">Amenities</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['Wifi', 'AC', 'Heating', 'Elevator', 'Dishwasher', 'Private Bath', 'Furnished'].map(item => {
+                                                const key = item.toLowerCase().replace(' ', '_')
+                                                const active = listing.features?.[key]
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        onClick={() => setListing({
+                                                            ...listing,
+                                                            features: { ...listing.features, [key]: !active }
+                                                        })}
+                                                        className={`px-3 py-1 rounded-full text-xs font-bold border transition ${active
+                                                            ? 'bg-[#FD267A] text-white border-[#FD267A]'
+                                                            : 'bg-white text-gray-500 border-gray-200'
+                                                            }`}
+                                                    >
+                                                        {item}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs text-gray-400 font-bold block mb-2">House Rules</label>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Smoking Allowed</span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={listing.rules?.smoking_allowed || false}
+                                                    onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, smoking_allowed: e.target.checked } })}
+                                                    className="accent-[#FD267A] w-5 h-5"
+                                                />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Pets Allowed</span>
+                                                <select
+                                                    value={listing.rules?.pets_allowed || 'no'}
+                                                    onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, pets_allowed: e.target.value } })}
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                >
+                                                    <option value="no">No Pets</option>
+                                                    <option value="cats">Cats Only</option>
+                                                    <option value="dogs">Dogs Only</option>
+                                                    <option value="all">All Pets</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Visitors</span>
+                                                <select
+                                                    value={listing.rules?.visitors_allowed || 'yes'}
+                                                    onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, visitors_allowed: e.target.value } })}
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                >
+                                                    <option value="yes">Anytime</option>
+                                                    <option value="weekends">Weekends Only</option>
+                                                    <option value="no">No Visitors</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
-                </div>
 
-                <div className="mt-6 text-center text-xs text-gray-400">
-                    <p>Changes are saved automatically when you tap save.</p>
-                </div>
+                    {/* SEEKER FORM */}
+                    {profile.role === 'seeker' && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="border-t border-gray-100 pt-6">
+                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">My Preferences</h3>
 
-                <button
-                    onClick={updateProfile}
-                    className="w-full mt-4 tinder-gradient text-white font-bold py-4 rounded-full shadow-lg hover:shadow-xl transition transform active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
-                >
-                    <Save size={20} />
-                    Save Profile
-                </button>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Max Budget</label>
+                                            <input
+                                                type="number"
+                                                value={profile.preferences?.budget_max || ''}
+                                                onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, budget_max: parseInt(e.target.value) } })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                placeholder="$$$"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-400 font-bold">Move-in Date</label>
+                                            <input
+                                                type="date"
+                                                value={profile.preferences?.move_in_date || ''}
+                                                onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, move_in_date: e.target.value } })}
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs text-gray-400 font-bold block mb-2">Occupation</label>
+                                        <select
+                                            value={profile.preferences?.occupation || 'student'}
+                                            onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, occupation: e.target.value } })}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#FD267A]"
+                                        >
+                                            <option value="student">Student</option>
+                                            <option value="professional">Professional</option>
+                                            <option value="remote">Remote Worker</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs text-gray-400 font-bold block mb-2">Lifestyle</label>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">I smoke</span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={profile.preferences?.smoker || false}
+                                                    onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, smoker: e.target.checked } })}
+                                                    className="accent-[#FD267A] w-5 h-5"
+                                                />
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">I have pets</span>
+                                                <select
+                                                    value={profile.preferences?.pets || 'no'}
+                                                    onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, pets: e.target.value } })}
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                >
+                                                    <option value="no">No Pets</option>
+                                                    <option value="dog">Dog</option>
+                                                    <option value="cat">Cat</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Vibe Check (Common) */}
+                    <div className="mt-8">
+                        <label className="text-xs text-gray-400 font-bold block mb-4 uppercase tracking-wider">Vibe Check</label>
+                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                            {/* Cleanliness */}
+                            <div>
+                                <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
+                                    <span>Relaxed</span>
+                                    <span>Spotless</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="5"
+                                    value={profile.preferences?.lifestyle?.cleanliness || 3}
+                                    onChange={(e) => setProfile({
+                                        ...profile,
+                                        preferences: {
+                                            ...(profile.preferences || {}),
+                                            lifestyle: { ...(profile.preferences?.lifestyle || {}), cleanliness: parseInt(e.target.value) }
+                                        }
+                                    })}
+                                    className="w-full accent-[#FD267A]"
+                                />
+                            </div>
+                            {/* Schedule */}
+                            <div>
+                                <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
+                                    <span>Early Bird</span>
+                                    <span>Night Owl</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="5"
+                                    value={profile.preferences?.lifestyle?.schedule || 3}
+                                    onChange={(e) => setProfile({
+                                        ...profile,
+                                        preferences: {
+                                            ...(profile.preferences || {}),
+                                            lifestyle: { ...(profile.preferences?.lifestyle || {}), schedule: parseInt(e.target.value) }
+                                        }
+                                    })}
+                                    className="w-full accent-[#FD267A]"
+                                />
+                            </div>
+                            {/* Social */}
+                            <div>
+                                <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
+                                    <span>Hermit</span>
+                                    <span>Party Animal</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="5"
+                                    value={profile.preferences?.lifestyle?.social || 3}
+                                    onChange={(e) => setProfile({
+                                        ...profile,
+                                        preferences: {
+                                            ...(profile.preferences || {}),
+                                            lifestyle: { ...(profile.preferences?.lifestyle || {}), social: parseInt(e.target.value) }
+                                        }
+                                    })}
+                                    className="w-full accent-[#FD267A]"
+                                />
+                            </div>
+                            {/* Guests */}
+                            <div>
+                                <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
+                                    <span>No Guests</span>
+                                    <span>Always</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="5"
+                                    value={profile.preferences?.lifestyle?.guests || 3}
+                                    onChange={(e) => setProfile({
+                                        ...profile,
+                                        preferences: {
+                                            ...(profile.preferences || {}),
+                                            lifestyle: { ...(profile.preferences?.lifestyle || {}), guests: parseInt(e.target.value) }
+                                        }
+                                    })}
+                                    className="w-full accent-[#FD267A]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 text-center text-xs text-gray-400">
+                        <p>Changes are saved automatically when you tap save.</p>
+                    </div>
+
+                    <button
+                        onClick={updateProfile}
+                        className="w-full mt-4 tinder-gradient text-white font-bold py-4 rounded-full shadow-lg hover:shadow-xl transition transform active:scale-95 uppercase tracking-wide flex items-center justify-center gap-2"
+                    >
+                        <Save size={20} />
+                        Save Profile
+                    </button>
+                </div>
             </div>
         </div>
     )

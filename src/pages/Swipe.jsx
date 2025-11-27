@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
-import { Heart, X, MapPin, DollarSign, Info } from 'lucide-react'
+import { Heart, X, MapPin, DollarSign, Info, Maximize, Cat, Cigarette, CigaretteOff } from 'lucide-react'
 
 export default function Swipe() {
     const [loading, setLoading] = useState(true)
@@ -43,8 +43,20 @@ export default function Swipe() {
                     .select('*, host:users(*)')
 
                 if (listings) {
-                    potentialMatches = listings.filter(l => !seenIds.includes(l.host_id))
-                    // Basic filtering can go here
+                    potentialMatches = listings.filter(l => {
+                        if (seenIds.includes(l.host_id)) return false
+
+                        // Price Filter
+                        if (profile.preferences?.budget_max && l.price > profile.preferences.budget_max) return false
+
+                        // Pets Filter
+                        if (profile.preferences?.pets !== 'no' && l.rules?.pets_allowed === 'no') return false
+
+                        // Smoking Filter
+                        if (profile.preferences?.smoker && !l.rules?.smoking_allowed) return false
+
+                        return true
+                    })
                 }
             } else {
                 const { data: seekers } = await supabase
@@ -105,18 +117,19 @@ export default function Swipe() {
         }
     }
 
-    if (loading) return <div className="flex justify-center items-center h-full text-rose-500 animate-pulse">Finding matches...</div>
+    if (loading) return <div className="flex justify-center items-center h-full text-[#FD267A] animate-pulse">Finding matches...</div>
 
     return (
-        <div className="h-full w-full flex flex-col relative">
-            <div className="flex-1 relative w-full h-full flex justify-center items-center p-2">
+        <div className="h-full w-full flex flex-col relative bg-gray-100">
+            <div className="flex-1 relative w-full h-full flex justify-center items-center p-2 overflow-hidden">
                 <AnimatePresence>
                     {candidates.length === 0 ? (
                         <div className="text-center p-8 text-gray-400">
-                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                                 <Info size={40} />
                             </div>
-                            <p className="text-lg">No more profiles around you.</p>
+                            <p className="text-lg font-medium">No more profiles around you.</p>
+                            <p className="text-sm mt-2">Check back later!</p>
                         </div>
                     ) : (
                         candidates.map((item, index) => {
@@ -126,6 +139,7 @@ export default function Swipe() {
                                     <Card
                                         key={currentUser.role === 'seeker' ? item.host_id : item.id}
                                         item={item}
+                                        currentUser={currentUser}
                                         role={currentUser.role}
                                         onSwipe={(dir) => handleSwipe(dir, item)}
                                         isTop={index === candidates.length - 1}
@@ -141,7 +155,7 @@ export default function Swipe() {
     )
 }
 
-function Card({ item, role, onSwipe, isTop }) {
+function Card({ item, currentUser, role, onSwipe, isTop }) {
     const x = useMotionValue(0)
     const rotate = useTransform(x, [-200, 200], [-25, 25])
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
@@ -160,12 +174,40 @@ function Card({ item, role, onSwipe, isTop }) {
     }
 
     const isListing = role === 'seeker'
-    const title = isListing ? item.title : item.full_name
-    const subtitle = isListing ? item.location : item.bio
+    const title = isListing ? (item.title || 'Listing') : (item.full_name || 'User')
+    const subtitle = isListing ? (item.location || 'Location') : (item.bio || '')
     const image = isListing
         ? (item.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80')
         : (item.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=1760&q=80')
     const price = isListing ? item.price : null
+
+    // Compatibility Score Logic
+    const calculateCompatibility = () => {
+        const userLifestyle = currentUser?.preferences?.lifestyle
+        const candidateLifestyle = isListing ? item.host?.preferences?.lifestyle : item.preferences?.lifestyle
+
+        if (!userLifestyle || !candidateLifestyle) return null
+
+        const traits = ['cleanliness', 'schedule', 'social', 'guests']
+        let totalDiff = 0
+
+        traits.forEach(trait => {
+            const uVal = userLifestyle[trait] || 3
+            const cVal = candidateLifestyle[trait] || 3
+            totalDiff += Math.abs(uVal - cVal)
+        })
+
+        const maxDiff = traits.length * 4 // 4 is max diff per trait (5-1)
+        return Math.round(100 - (totalDiff / maxDiff) * 100)
+    }
+
+    const matchScore = calculateCompatibility()
+
+    const getScoreColor = (score) => {
+        if (score >= 80) return 'bg-green-500'
+        if (score >= 50) return 'bg-yellow-500'
+        return 'bg-red-500'
+    }
 
     return (
         <motion.div
@@ -196,25 +238,56 @@ function Card({ item, role, onSwipe, isTop }) {
                 </>
             )}
 
+            {/* Match Score Badge */}
+            {matchScore !== null && (
+                <div className={`absolute top-4 right-4 ${getScoreColor(matchScore)} text-white px-3 py-1 rounded-full font-bold text-sm shadow-lg z-10 flex items-center gap-1`}>
+                    <span>{matchScore}% Match</span>
+                </div>
+            )}
+
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
                 <div className="flex items-end justify-between mb-2">
-                    <h2 className="text-3xl font-bold leading-tight shadow-black drop-shadow-md">{title}</h2>
+                    <div>
+                        <h2 className="text-3xl font-bold leading-tight shadow-black drop-shadow-md">{title}</h2>
+                        <div className="flex items-center gap-2 text-gray-100 mt-1">
+                            <MapPin size={16} />
+                            <p className="text-lg font-medium truncate">{subtitle}</p>
+                        </div>
+                    </div>
                     {price && (
-                        <span className="text-2xl font-semibold bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                            ${price}
+                        <div className="text-right">
+                            <span className="text-2xl font-bold bg-white/20 px-3 py-1 rounded-lg backdrop-blur-md">
+                                ${price}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Attributes / Chips */}
+                <div className="flex flex-wrap gap-2 mb-4 mt-3">
+                    {isListing && item.features && (
+                        <>
+                            {item.features.size_m2 > 0 && (
+                                <span className="px-2 py-1 bg-black/40 rounded-md text-xs font-bold flex items-center gap-1 backdrop-blur-sm">
+                                    <Maximize size={12} /> {item.features.size_m2}m²
+                                </span>
+                            )}
+                            {item.features.private_bath && (
+                                <span className="px-2 py-1 bg-black/40 rounded-md text-xs font-bold backdrop-blur-sm">Pvt Bath</span>
+                            )}
+                        </>
+                    )}
+                    {!isListing && item.preferences?.budget_max && (
+                        <span className="px-2 py-1 bg-black/40 rounded-md text-xs font-bold backdrop-blur-sm">
+                            Budget: ${item.preferences.budget_max}
                         </span>
                     )}
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-100 mb-4">
-                    <MapPin size={18} />
-                    <p className="text-lg font-medium truncate">{subtitle}</p>
-                </div>
-
-                {/* Action Buttons (Visual Only - actual action is swipe) */}
+                {/* Action Buttons */}
                 {isTop && (
-                    <div className="flex justify-center gap-6 mt-4 pt-4">
+                    <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-white/10">
                         <button
                             className="w-14 h-14 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition"
                             onClick={(e) => { e.stopPropagation(); onSwipe('left'); }}

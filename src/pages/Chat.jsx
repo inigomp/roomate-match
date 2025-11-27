@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { Send, ArrowLeft, Shield } from 'lucide-react'
+import { Send, ArrowLeft, Shield, MessageCircle } from 'lucide-react'
 
 export default function Chat() {
     const [matches, setMatches] = useState([])
@@ -123,7 +123,7 @@ export default function Chat() {
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div className="flex-1">
-                        <h2 className="font-bold text-gray-800 text-sm">{activeMatch.full_name}</h2>
+                        <h2 className="font-bold text-gray-800 text-sm">{activeMatch.full_name || 'User'}</h2>
                         <div className="flex items-center gap-1 text-xs text-gray-400">
                             <Shield size={10} />
                             <span>Verified Match</span>
@@ -141,8 +141,8 @@ export default function Chat() {
                         return (
                             <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[80%] px-4 py-3 rounded-3xl text-sm ${isMe
-                                        ? 'bg-[#1195F5] text-white rounded-br-none'
-                                        : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                                    ? 'bg-[#1195F5] text-white rounded-br-none'
+                                    : 'bg-gray-100 text-gray-800 rounded-bl-none'
                                     }`}>
                                     {msg.content}
                                 </div>
@@ -191,7 +191,7 @@ export default function Chat() {
                                     alt={match.full_name}
                                 />
                             </div>
-                            <span className="text-xs font-bold text-gray-700">{match.full_name.split(' ')[0]}</span>
+                            <span className="text-xs font-bold text-gray-700">{(match.full_name || 'User').split(' ')[0]}</span>
                         </div>
                     ))}
                 </div>
@@ -224,7 +224,7 @@ export default function Chat() {
                                     alt={match.full_name}
                                 />
                                 <div className="flex-1 border-b border-gray-100 pb-4">
-                                    <h3 className="font-bold text-gray-800 text-base">{match.full_name}</h3>
+                                    <h3 className="font-bold text-gray-800 text-base">{match.full_name || 'User'}</h3>
                                     <p className="text-sm text-gray-500 line-clamp-1">You matched! Say hello 👋</p>
                                 </div>
                             </div>
