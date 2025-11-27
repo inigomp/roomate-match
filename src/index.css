@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #FD297B;
+    --color-secondary: #FF655B;
+    --color-tertiary: #FF5864;
+    --font-sans: "Proxima Nova", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+    body {
+        @apply text-gray-800 antialiased;
+        font-family: var(--font-sans);
+    }
+}
+
+/* Custom Utilities */
+.tinder-gradient {
+    background: linear-gradient(45deg, #FD267A, #FF6036);
+}
+
+.text-gradient {
+    background: linear-gradient(45deg, #FD267A, #FF6036);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
