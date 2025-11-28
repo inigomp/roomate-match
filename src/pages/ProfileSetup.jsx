@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Save, Camera, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function ProfileSetup() {
+    const { t } = useTranslation()
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState(null)
     const [profile, setProfile] = useState({
@@ -126,7 +128,7 @@ export default function ProfileSetup() {
                 if (listingError) throw listingError
             }
 
-            alert('Profile updated!')
+            alert(t('profile.profileUpdated'))
         } catch (error) {
             alert(error.message)
         } finally {
@@ -134,7 +136,7 @@ export default function ProfileSetup() {
         }
     }
 
-    if (loading) return <div className="p-4 text-center text-[#FD267A]">Loading...</div>
+    if (loading) return <div className="p-4 text-center text-[#FF6B35]">{t('auth.loading')}</div>
 
     return (
         <div className="h-full overflow-y-auto bg-gray-50 pb-24">
@@ -145,7 +147,7 @@ export default function ProfileSetup() {
                 ) : (
                     <div className="text-gray-400 flex flex-col items-center">
                         <Camera size={40} />
-                        <span className="text-sm mt-2">Add Photo</span>
+                        <span className="text-sm mt-2">{t('profile.addPhoto')}</span>
                     </div>
                 )}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -159,44 +161,44 @@ export default function ProfileSetup() {
                     {/* Name & Bio */}
                     <div className="space-y-4">
                         <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Name</label>
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('profile.myName')}</label>
                             <input
                                 type="text"
                                 value={profile.full_name || ''}
                                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                                className="w-full text-2xl font-bold text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2 transition placeholder-gray-300"
-                                placeholder="Name"
+                                className="w-full text-2xl font-bold text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2 transition placeholder-gray-300"
+                                placeholder={t('profile.namePlaceholder')}
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">About Me</label>
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('profile.aboutMe')}</label>
                             <textarea
                                 value={profile.bio || ''}
                                 onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                className="w-full text-gray-600 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2 transition resize-none placeholder-gray-300"
+                                className="w-full text-gray-600 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2 transition resize-none placeholder-gray-300"
                                 rows={3}
-                                placeholder="I like hiking and..."
+                                placeholder={t('profile.aboutPlaceholder')}
                             />
                         </div>
                     </div>
 
                     {/* Role Toggle */}
                     <div>
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">I am...</label>
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">{t('profile.iAm')}</label>
                         <div className="flex bg-gray-100 p-1 rounded-full">
                             <button
                                 onClick={() => setProfile({ ...profile, role: 'seeker' })}
-                                className={`flex-1 py-3 rounded-full text-sm font-bold transition ${profile.role === 'seeker' ? 'bg-white text-[#FD267A] shadow-md' : 'text-gray-400'
+                                className={`flex-1 py-3 rounded-full text-sm font-bold transition ${profile.role === 'seeker' ? 'bg-white text-[#FF6B35] shadow-md' : 'text-gray-400'
                                     }`}
                             >
-                                Looking for a Room
+                                {t('profile.lookingForRoom')}
                             </button>
                             <button
                                 onClick={() => setProfile({ ...profile, role: 'host' })}
-                                className={`flex-1 py-3 rounded-full text-sm font-bold transition ${profile.role === 'host' ? 'bg-white text-[#FD267A] shadow-md' : 'text-gray-400'
+                                className={`flex-1 py-3 rounded-full text-sm font-bold transition ${profile.role === 'host' ? 'bg-white text-[#FF6B35] shadow-md' : 'text-gray-400'
                                     }`}
                             >
-                                Have a Room
+                                {t('profile.haveRoom')}
                             </button>
                         </div>
                     </div>
@@ -205,14 +207,14 @@ export default function ProfileSetup() {
                     {profile.role === 'host' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="border-t border-gray-100 pt-6">
-                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">The Room</h3>
+                                <h3 className="text-[#FF6B35] font-bold uppercase tracking-wider text-sm mb-4">The Room</h3>
 
                                 <div className="space-y-4">
                                     <input
                                         type="text"
                                         value={listing.title || ''}
                                         onChange={(e) => setListing({ ...listing, title: e.target.value })}
-                                        className="w-full font-bold text-lg text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                        className="w-full font-bold text-lg text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                         placeholder="Listing Title (e.g. Sunny Room in Mission)"
                                     />
 
@@ -223,7 +225,7 @@ export default function ProfileSetup() {
                                                 type="number"
                                                 value={listing.price || ''}
                                                 onChange={(e) => setListing({ ...listing, price: parseInt(e.target.value) })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                                 placeholder="$$$"
                                             />
                                         </div>
@@ -233,7 +235,7 @@ export default function ProfileSetup() {
                                                 type="number"
                                                 value={listing.features?.size_m2 || ''}
                                                 onChange={(e) => setListing({ ...listing, features: { ...listing.features, size_m2: parseInt(e.target.value) } })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                                 placeholder="e.g. 12"
                                             />
                                         </div>
@@ -246,7 +248,7 @@ export default function ProfileSetup() {
                                                 type="date"
                                                 value={listing.available_from || ''}
                                                 onChange={(e) => setListing({ ...listing, available_from: e.target.value })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                             />
                                         </div>
                                         <div>
@@ -255,7 +257,7 @@ export default function ProfileSetup() {
                                                 type="number"
                                                 value={listing.min_stay_months || 1}
                                                 onChange={(e) => setListing({ ...listing, min_stay_months: parseInt(e.target.value) })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                             />
                                         </div>
                                     </div>
@@ -263,7 +265,7 @@ export default function ProfileSetup() {
                             </div>
 
                             <div className="border-t border-gray-100 pt-6">
-                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">Features & Rules</h3>
+                                <h3 className="text-[#FF6B35] font-bold uppercase tracking-wider text-sm mb-4">Features & Rules</h3>
 
                                 <div className="space-y-4">
                                     <div>
@@ -280,7 +282,7 @@ export default function ProfileSetup() {
                                                             features: { ...listing.features, [key]: !active }
                                                         })}
                                                         className={`px-3 py-1 rounded-full text-xs font-bold border transition ${active
-                                                            ? 'bg-[#FD267A] text-white border-[#FD267A]'
+                                                            ? 'bg-[#FF6B35] text-white border-[#FF6B35]'
                                                             : 'bg-white text-gray-500 border-gray-200'
                                                             }`}
                                                     >
@@ -300,7 +302,7 @@ export default function ProfileSetup() {
                                                     type="checkbox"
                                                     checked={listing.rules?.smoking_allowed || false}
                                                     onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, smoking_allowed: e.target.checked } })}
-                                                    className="accent-[#FD267A] w-5 h-5"
+                                                    className="accent-[#FF6B35] w-5 h-5"
                                                 />
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -308,7 +310,7 @@ export default function ProfileSetup() {
                                                 <select
                                                     value={listing.rules?.pets_allowed || 'no'}
                                                     onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, pets_allowed: e.target.value } })}
-                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FF6B35]"
                                                 >
                                                     <option value="no">No Pets</option>
                                                     <option value="cats">Cats Only</option>
@@ -321,7 +323,7 @@ export default function ProfileSetup() {
                                                 <select
                                                     value={listing.rules?.visitors_allowed || 'yes'}
                                                     onChange={(e) => setListing({ ...listing, rules: { ...listing.rules, visitors_allowed: e.target.value } })}
-                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FF6B35]"
                                                 >
                                                     <option value="yes">Anytime</option>
                                                     <option value="weekends">Weekends Only</option>
@@ -339,7 +341,7 @@ export default function ProfileSetup() {
                     {profile.role === 'seeker' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="border-t border-gray-100 pt-6">
-                                <h3 className="text-[#FD267A] font-bold uppercase tracking-wider text-sm mb-4">My Preferences</h3>
+                                <h3 className="text-[#FF6B35] font-bold uppercase tracking-wider text-sm mb-4">My Preferences</h3>
 
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
@@ -349,7 +351,7 @@ export default function ProfileSetup() {
                                                 type="number"
                                                 value={profile.preferences?.budget_max || ''}
                                                 onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, budget_max: parseInt(e.target.value) } })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                                 placeholder="$$$"
                                             />
                                         </div>
@@ -359,7 +361,7 @@ export default function ProfileSetup() {
                                                 type="date"
                                                 value={profile.preferences?.move_in_date || ''}
                                                 onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, move_in_date: e.target.value } })}
-                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FD267A] outline-none py-2"
+                                                className="w-full text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                             />
                                         </div>
                                     </div>
@@ -369,7 +371,7 @@ export default function ProfileSetup() {
                                         <select
                                             value={profile.preferences?.occupation || 'student'}
                                             onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, occupation: e.target.value } })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#FD267A]"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#FF6B35]"
                                         >
                                             <option value="student">Student</option>
                                             <option value="professional">Professional</option>
@@ -387,7 +389,7 @@ export default function ProfileSetup() {
                                                     type="checkbox"
                                                     checked={profile.preferences?.smoker || false}
                                                     onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, smoker: e.target.checked } })}
-                                                    className="accent-[#FD267A] w-5 h-5"
+                                                    className="accent-[#FF6B35] w-5 h-5"
                                                 />
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -395,7 +397,7 @@ export default function ProfileSetup() {
                                                 <select
                                                     value={profile.preferences?.pets || 'no'}
                                                     onChange={(e) => setProfile({ ...profile, preferences: { ...profile.preferences, pets: e.target.value } })}
-                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FD267A]"
+                                                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm outline-none focus:border-[#FF6B35]"
                                                 >
                                                     <option value="no">No Pets</option>
                                                     <option value="dog">Dog</option>
@@ -432,7 +434,7 @@ export default function ProfileSetup() {
                                             lifestyle: { ...(profile.preferences?.lifestyle || {}), cleanliness: parseInt(e.target.value) }
                                         }
                                     })}
-                                    className="w-full accent-[#FD267A]"
+                                    className="w-full accent-[#FF6B35]"
                                 />
                             </div>
                             {/* Schedule */}
@@ -453,7 +455,7 @@ export default function ProfileSetup() {
                                             lifestyle: { ...(profile.preferences?.lifestyle || {}), schedule: parseInt(e.target.value) }
                                         }
                                     })}
-                                    className="w-full accent-[#FD267A]"
+                                    className="w-full accent-[#FF6B35]"
                                 />
                             </div>
                             {/* Social */}
@@ -474,7 +476,7 @@ export default function ProfileSetup() {
                                             lifestyle: { ...(profile.preferences?.lifestyle || {}), social: parseInt(e.target.value) }
                                         }
                                     })}
-                                    className="w-full accent-[#FD267A]"
+                                    className="w-full accent-[#FF6B35]"
                                 />
                             </div>
                             {/* Guests */}
@@ -495,7 +497,7 @@ export default function ProfileSetup() {
                                             lifestyle: { ...(profile.preferences?.lifestyle || {}), guests: parseInt(e.target.value) }
                                         }
                                     })}
-                                    className="w-full accent-[#FD267A]"
+                                    className="w-full accent-[#FF6B35]"
                                 />
                             </div>
                         </div>

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #FD297B;
-    --color-secondary: #FF655B;
-    --color-tertiary: #FF5864;
+    --color-primary: #FF6B35;
+    --color-secondary: #F7931E;
+    --color-tertiary: #FF8C42;
     --font-sans: "Proxima Nova", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -16,11 +16,11 @@
 
 /* Custom Utilities */
 .tinder-gradient {
-    background: linear-gradient(45deg, #FD267A, #FF6036);
+    background: linear-gradient(45deg, #FF6B35, #F7931E);
 }
 
 .text-gradient {
-    background: linear-gradient(45deg, #FD267A, #FF6036);
+    background: linear-gradient(45deg, #FF6B35, #F7931E);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }

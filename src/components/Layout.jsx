@@ -1,7 +1,8 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { User, Flame, MessageCircle, LogOut } from 'lucide-react'
+import { User, MessageCircle, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import logo from '../assets/logo.png'
+import LanguageSelector from './LanguageSelector'
 
 export default function Layout() {
     const location = useLocation()
@@ -26,10 +27,12 @@ export default function Layout() {
 
                     <div className="flex items-center gap-1">
                         <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
-                        <span className="text-[#FD267A] font-bold text-xl tracking-tighter hidden">tinderflat</span>
+                        <span className="text-[#FF6B35] font-bold text-xl tracking-tighter hidden">roomatch</span>
                     </div>
 
-                    <div className="w-10"></div>
+                    <div className="w-10">
+                        <LanguageSelector />
+                    </div>
                 </header>
 
                 {/* Main Content Area */}
@@ -41,10 +44,10 @@ export default function Layout() {
                 <nav className="h-20 bg-white flex justify-around items-center px-6 shrink-0 z-20 pb-2">
                     <Link to="/" className="group relative">
                         <div className={`p-1 transition-transform group-active:scale-90`}>
-                            <Flame
-                                size={32}
-                                className={location.pathname === '/' ? 'text-[#FD267A]' : 'text-gray-300'}
-                                fill={location.pathname === '/' ? "currentColor" : "none"}
+                            <img
+                                src={logo}
+                                alt="Find Roommates"
+                                className={`w-8 h-8 object-contain ${location.pathname === '/' ? 'opacity-100' : 'opacity-30'}`}
                             />
                         </div>
                     </Link>
@@ -53,7 +56,7 @@ export default function Layout() {
                         <div className={`p-1 transition-transform group-active:scale-90`}>
                             <MessageCircle
                                 size={32}
-                                className={location.pathname === '/chat' ? 'text-[#FD267A]' : 'text-gray-300'}
+                                className={location.pathname === '/chat' ? 'text-[#FF6B35]' : 'text-gray-300'}
                                 fill={location.pathname === '/chat' ? "currentColor" : "none"}
                                 strokeWidth={2.5}
                             />
@@ -64,7 +67,7 @@ export default function Layout() {
                         <div className={`p-1 transition-transform group-active:scale-90`}>
                             <User
                                 size={32}
-                                className={location.pathname === '/profile' ? 'text-[#FD267A]' : 'text-gray-300'}
+                                className={location.pathname === '/profile' ? 'text-[#FF6B35]' : 'text-gray-300'}
                                 fill={location.pathname === '/profile' ? "currentColor" : "none"}
                                 strokeWidth={2.5}
                             />

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { Heart, X, MapPin, DollarSign, Info, Maximize, Cat, Cigarette, CigaretteOff } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function Swipe() {
+    const { t } = useTranslation()
     const [loading, setLoading] = useState(true)
     const [candidates, setCandidates] = useState([])
     const [currentUser, setCurrentUser] = useState(null)
@@ -117,7 +119,7 @@ export default function Swipe() {
         }
     }
 
-    if (loading) return <div className="flex justify-center items-center h-full text-[#FD267A] animate-pulse">Finding matches...</div>
+    if (loading) return <div className="flex justify-center items-center h-full text-[#FF6B35] animate-pulse">{t('swipe.findingMatches')}</div>
 
     return (
         <div className="h-full w-full flex flex-col relative bg-gray-100">

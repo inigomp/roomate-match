@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { Send, ArrowLeft, Shield, MessageCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function Chat() {
+    const { t } = useTranslation()
     const [matches, setMatches] = useState([])
     const [activeMatch, setActiveMatch] = useState(null)
     const [messages, setMessages] = useState([])
@@ -111,7 +113,7 @@ export default function Chat() {
             <div className="flex flex-col h-full bg-white">
                 {/* Chat Header */}
                 <div className="px-4 py-3 border-b flex items-center gap-3 bg-white shadow-sm z-10">
-                    <button onClick={() => setActiveMatch(null)} className="text-[#FF655B] -ml-2">
+                    <button onClick={() => setActiveMatch(null)} className="text-[#FF6B35] -ml-2">
                         <ArrowLeft size={28} />
                     </button>
                     <div className="relative">
@@ -164,7 +166,7 @@ export default function Chat() {
                     <button
                         type="submit"
                         disabled={!newMessage.trim()}
-                        className="p-3 rounded-full text-[#FD267A] hover:bg-rose-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-3 rounded-full text-[#FF6B35] hover:bg-rose-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Send size={24} />
                     </button>
@@ -177,7 +179,7 @@ export default function Chat() {
         <div className="h-full flex flex-col">
             {/* Matches Header */}
             <div className="px-4 pt-4 pb-2">
-                <h1 className="text-[#FD267A] font-bold text-sm uppercase tracking-wide mb-4">New Matches</h1>
+                <h1 className="text-[#FF6B35] font-bold text-sm uppercase tracking-wide mb-4">{t('chat.newMatches')}</h1>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
                     {matches.length === 0 && (
                         <div className="w-16 h-16 rounded-full bg-gray-100 animate-pulse"></div>
@@ -201,15 +203,15 @@ export default function Chat() {
 
             {/* Messages List */}
             <div className="flex-1 px-4">
-                <h1 className="text-[#FD267A] font-bold text-sm uppercase tracking-wide mb-4 mt-2">Messages</h1>
+                <h1 className="text-[#FF6B35] font-bold text-sm uppercase tracking-wide mb-4 mt-2">{t('chat.messages')}</h1>
                 <div className="space-y-4">
                     {matches.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-center">
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-2">
                                 <MessageCircle size={30} className="text-gray-300" />
                             </div>
-                            <p className="text-gray-400 text-sm">No messages yet.</p>
-                            <p className="text-gray-300 text-xs">Get swiping to find matches!</p>
+                            <p className="text-gray-400 text-sm">{t('chat.noMessages')}</p>
+                            <p className="text-gray-300 text-xs">{t('chat.getSwiping')}</p>
                         </div>
                     ) : (
                         matches.map(match => (
