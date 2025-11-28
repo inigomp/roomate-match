@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { calculateDistance } from '../lib/distance'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { Heart, X, MapPin, DollarSign, Info, Maximize, Cat, Cigarette, CigaretteOff } from 'lucide-react'
@@ -47,6 +48,18 @@ export default function Swipe() {
                 if (listings) {
                     potentialMatches = listings.filter(l => {
                         if (seenIds.includes(l.host_id)) return false
+
+                        // Location Filter
+                        if (profile.preferences?.location?.latitude && profile.preferences?.location?.longitude && l.latitude && l.longitude) {
+                            const dist = calculateDistance(
+                                profile.preferences.location.latitude,
+                                profile.preferences.location.longitude,
+                                l.latitude,
+                                l.longitude
+                            )
+                            const maxDist = profile.preferences.search_radius || 50
+                            if (dist > maxDist) return false
+                        }
 
                         // Price Filter
                         if (profile.preferences?.budget_max && l.price > profile.preferences.budget_max) return false

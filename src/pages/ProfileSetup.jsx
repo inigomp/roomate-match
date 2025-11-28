@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { Save, Camera, ChevronRight } from 'lucide-react'
+import { Save, Camera, ChevronRight, Search, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import LocationPicker from '../components/LocationPicker'
+import VisualMap from '../components/VisualMap'
 
 export default function ProfileSetup() {
     const { t } = useTranslation()
     const [loading, setLoading] = useState(true)
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef(null)
     const [user, setUser] = useState(null)
     const [profile, setProfile] = useState({
         full_name: '',
@@ -19,6 +23,12 @@ export default function ProfileSetup() {
             budget_max: 1000,
             move_in_date: '',
             occupation: 'student',
+            location: {
+                latitude: null,
+                longitude: null,
+                address: ''
+            },
+            search_radius: 10
         }
     })
     const [listing, setListing] = useState({
@@ -71,6 +81,8 @@ export default function ProfileSetup() {
                         budget_max: 1000,
                         move_in_date: '',
                         occupation: 'student',
+                        location: { latitude: null, longitude: null, address: '' },
+                        search_radius: 10
                     }
                 }
                 setProfile(userProfile)
@@ -98,6 +110,38 @@ export default function ProfileSetup() {
             console.error('Error loading user data!', error.message)
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function uploadAvatar(event) {
+        try {
+            setUploading(true)
+
+            if (!event.target.files || event.target.files.length === 0) {
+                return
+            }
+
+            const file = event.target.files[0]
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`
+            const filePath = `avatars/${fileName}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            const { data } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath)
+
+            setProfile({ ...profile, avatar_url: data.publicUrl })
+
+        } catch (error) {
+            alert(error.message)
+        } finally {
+            setUploading(false)
         }
     }
 
@@ -141,7 +185,18 @@ export default function ProfileSetup() {
     return (
         <div className="h-full overflow-y-auto bg-gray-50 pb-24">
             {/* Header Image Area */}
-            <div className="relative h-64 bg-gray-200 flex items-center justify-center overflow-hidden group cursor-pointer">
+            <div
+                className="relative h-64 bg-gray-200 flex items-center justify-center overflow-hidden group cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+            >
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={uploadAvatar}
+                    className="hidden"
+                />
                 {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -151,7 +206,11 @@ export default function ProfileSetup() {
                     </div>
                 )}
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <span className="text-white font-bold border-2 border-white px-4 py-1 rounded-full">EDIT</span>
+                    {uploading ? (
+                        <span className="text-white font-bold">Uploading...</span>
+                    ) : (
+                        <span className="text-white font-bold border-2 border-white px-4 py-1 rounded-full">EDIT</span>
+                    )}
                 </div>
             </div>
 
@@ -217,6 +276,33 @@ export default function ProfileSetup() {
                                         className="w-full font-bold text-lg text-gray-800 border-b border-gray-200 focus:border-[#FF6B35] outline-none py-2"
                                         placeholder="Listing Title (e.g. Sunny Room in Mission)"
                                     />
+
+                                    <div>
+                                        <label className="text-xs text-gray-400 font-bold block mb-2">Location</label>
+                                        <div className="space-y-4">
+                                            <LocationPicker
+                                                initialAddress={listing.address}
+                                                onLocationChange={(pos, addr) => {
+                                                    setListing({
+                                                        ...listing,
+                                                        latitude: pos.lat,
+                                                        longitude: pos.lng,
+                                                        address: addr
+                                                    })
+                                                }}
+                                            />
+                                            <VisualMap
+                                                position={listing.latitude && listing.longitude ? { lat: listing.latitude, lng: listing.longitude } : null}
+                                                onLocationSelect={(pos) => {
+                                                    setListing({
+                                                        ...listing,
+                                                        latitude: pos.lat,
+                                                        longitude: pos.lng
+                                                    })
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
@@ -380,6 +466,52 @@ export default function ProfileSetup() {
                                         </select>
                                     </div>
 
+                                    <div className="space-y-4">
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            {t('profile.searchLocation')}
+                                        </label>
+                                        <LocationPicker
+                                            initialAddress={profile.preferences?.location?.address}
+                                            onLocationChange={(pos, addr) => {
+                                                setProfile({
+                                                    ...profile,
+                                                    preferences: {
+                                                        ...profile.preferences,
+                                                        location: {
+                                                            latitude: pos.lat,
+                                                            longitude: pos.lng,
+                                                            address: addr
+                                                        }
+                                                    }
+                                                })
+                                            }}
+                                        />
+
+                                        <div className="pt-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {t('profile.searchRadius')}: {profile.preferences?.search_radius || 10} km
+                                            </label>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="50"
+                                                value={profile.preferences?.search_radius || 10}
+                                                onChange={(e) => setProfile({
+                                                    ...profile,
+                                                    preferences: {
+                                                        ...profile.preferences,
+                                                        search_radius: parseInt(e.target.value)
+                                                    }
+                                                })}
+                                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#FF6B35]"
+                                            />
+                                            <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                                <span>1 km</span>
+                                                <span>50 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label className="text-xs text-gray-400 font-bold block mb-2">Lifestyle</label>
                                         <div className="space-y-3">
@@ -516,6 +648,6 @@ export default function ProfileSetup() {
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
