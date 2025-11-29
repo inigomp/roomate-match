@@ -23,7 +23,11 @@ git push -u origin main
 1. Ve a tu repositorio en GitHub: `https://github.com/<tu-usuario>/roommate-match`
 2. Click en **Settings** (Configuración)
 3. En el menú lateral, click en **Pages**
-4. En **Source**, selecciona **GitHub Actions**
+4. En **Source**, selecciona **Deploy from a branch**
+5. En **Branch**, selecciona **gh-pages** y carpeta **/ (root)**
+6. Click en **Save**
+
+> **Importante:** Cuando usas `gh-pages` (el comando npm), debes seleccionar la rama `gh-pages`, NO "GitHub Actions".
 
 ### 3. Hacer Push para Activar el Deployment
 
@@ -69,17 +73,30 @@ Prueba las siguientes funcionalidades en la URL desplegada:
 - Las credenciales de `.env` ya están embebidas en el build
 - Verifica que las políticas RLS en Supabase permitan acceso público
 
-## Deployment Manual (Opcional)
+## Deployment Manual (Método Actual)
 
-Si prefieres hacer deployment manual sin GitHub Actions:
+Este es el método que estás usando actualmente:
 
 ```bash
+# 1. Asegúrate de tener gh-pages instalado
 npm install -D gh-pages
+
+# 2. Construye la aplicación
 npm run build
+
+# 3. Crea el archivo .nojekyll (importante para GitHub Pages)
+New-Item -ItemType File -Path dist/.nojekyll -Force
+
+# 4. Despliega a la rama gh-pages
 npx gh-pages -d dist
 ```
 
-## Actualizar la Aplicación
+**Configuración en GitHub:**
+- Ve a Settings > Pages
+- Source: **Deploy from a branch**
+- Branch: **gh-pages** / **(root)**
+
+## Deployment con GitHub Actions (Alternativa Automática)
 
 Cada vez que hagas cambios:
 
