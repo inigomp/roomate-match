@@ -148,12 +148,15 @@ export default function ProfileSetup() {
     async function updateProfile() {
         try {
             setLoading(true)
-            const { user } = await supabase.auth.getUser()
+            const { data: { user } } = await supabase.auth.getUser()
 
             const updates = {
                 id: user.id,
-                ...profile,
-                updated_at: new Date(),
+                full_name: profile.full_name,
+                role: profile.role,
+                bio: profile.bio,
+                avatar_url: profile.avatar_url,
+                preferences: profile.preferences
             }
 
             let { error } = await supabase.from('users').upsert(updates)
@@ -162,8 +165,7 @@ export default function ProfileSetup() {
             if (profile.role === 'host') {
                 const listingUpdates = {
                     host_id: user.id,
-                    ...listing,
-                    updated_at: new Date(),
+                    ...listing
                 }
 
                 if (listing.id) listingUpdates.id = listing.id
@@ -481,6 +483,24 @@ export default function ProfileSetup() {
                                                             latitude: pos.lat,
                                                             longitude: pos.lng,
                                                             address: addr
+                                                        }
+                                                    }
+                                                })
+                                            }}
+                                        />
+                                        <VisualMap
+                                            position={profile.preferences?.location?.latitude && profile.preferences?.location?.longitude
+                                                ? { lat: profile.preferences.location.latitude, lng: profile.preferences.location.longitude }
+                                                : null}
+                                            onLocationSelect={(pos) => {
+                                                setProfile({
+                                                    ...profile,
+                                                    preferences: {
+                                                        ...profile.preferences,
+                                                        location: {
+                                                            ...profile.preferences.location,
+                                                            latitude: pos.lat,
+                                                            longitude: pos.lng
                                                         }
                                                     }
                                                 })
