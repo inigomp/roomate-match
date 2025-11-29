@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/roommate-match/',
+  base: '/roomate-match/',
   plugins: [
     react(),
     tailwindcss(),
